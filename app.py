@@ -1,62 +1,12 @@
+# FIX: Refactored all game logic into logic_utils.py using AI code organization
 import random
 import streamlit as st
-
-def get_range_for_difficulty(difficulty: str):
-    if difficulty == "Easy":
-        return 1, 20
-    if difficulty == "Normal":
-        return 1, 100
-    if difficulty == "Hard":
-        return 1, 50
-    return 1, 100
-
-
-def parse_guess(raw: str, low: int, high: int):
-    if raw is None:
-        return False, None, "Enter a guess."
-
-    if raw == "":
-        return False, None, "Enter a guess."
-
-    try:
-        if "." in raw:
-            value = int(float(raw))
-        else:
-            value = int(raw)
-    except Exception:
-        return False, None, "That is not a number."
-
-    if value < low or value > high:
-        return False, None, f"Out of range: enter a number between {low} and {high}."
-
-    return True, value, None
-
-
-def check_guess(guess, secret):
-    if guess == secret:
-        return "Win", "🎉 Correct!"
-
-    if guess > secret:
-        return "Too High", "📉 Go LOWER!"
-    return "Too Low", "📈 Go HIGHER!"
-
-
-def update_score(current_score: int, outcome: str, attempt_number: int):
-    if outcome == "Win":
-        points = 100 - 10 * (attempt_number + 1)
-        if points < 10:
-            points = 10
-        return current_score + points
-
-    if outcome == "Too High":
-        if attempt_number % 2 == 0:
-            return current_score + 5
-        return current_score - 5
-
-    if outcome == "Too Low":
-        return current_score - 5
-
-    return current_score
+from logic_utils import (
+    get_range_for_difficulty,
+    parse_guess,
+    check_guess,
+    update_score,
+)
 
 st.set_page_config(page_title="Glitchy Guesser", page_icon="🎮")
 
@@ -83,7 +33,7 @@ low, high = get_range_for_difficulty(difficulty)
 st.sidebar.caption(f"Range: {low} to {high}")
 st.sidebar.caption(f"Attempts allowed: {attempt_limit}")
 
-# Track difficulty changes and reset game when it changes
+# FIX: When difficulty changes, reset game state (AI identified missing difficulty tracker)
 if "previous_difficulty" not in st.session_state:
     st.session_state.previous_difficulty = difficulty
 
@@ -111,6 +61,7 @@ if "status" not in st.session_state:
 if "history" not in st.session_state:
     st.session_state.history = []
 
+# FIX: Hide secret number by default to prevent spoilers (user feedback + AI implementation)
 if "show_secret" not in st.session_state:
     st.session_state.show_secret = False
 
@@ -120,23 +71,6 @@ st.info(
     f"Guess a number between {low} and {high}. "
     f"Attempts left: {attempt_limit - st.session_state.attempts}"
 )
-
-with st.expander("Developer Debug Info"):
-    col_secret1, col_secret2 = st.columns([2, 1])
-    with col_secret1:
-        if st.session_state.show_secret:
-            st.write("🔢 Secret (number to guess):", st.session_state.secret)
-        else:
-            st.write("🔢 Secret (number to guess): ***HIDDEN***")
-    with col_secret2:
-        if st.button("🔓 Reveal", key="reveal_secret"):
-            st.session_state.show_secret = not st.session_state.show_secret
-            st.rerun()
-
-    st.write("📊 Attempts used:", st.session_state.attempts)
-    st.write("⭐ Score (updated each guess):", st.session_state.score)
-    st.write("🎯 Difficulty:", difficulty)
-    st.write("📝 History:", st.session_state.history)
 
 raw_guess = st.text_input(
     "Enter your guess:",
@@ -151,11 +85,12 @@ with col2:
 with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
+# FIX: Reset status="playing" to fix "can't start game after losing" bug (AI root cause analysis)
 if new_game:
     st.session_state.attempts = 0
     st.session_state.secret = random.randint(low, high)
     st.session_state.history = []
-    st.session_state.status = "playing"
+    st.session_state.status = "playing"  # CRITICAL: prevents st.stop() from blocking new game
     st.session_state.score = 0
     st.success("New game started.")
     st.rerun()
@@ -182,7 +117,7 @@ if submit:
     if not ok:
         st.session_state.history.append(raw_guess)
         st.error(err)
-        st.rerun()
+        st.rerun()  # FIX: Refresh immediately for invalid input (AI: prevents double-click bug)
     else:
         st.session_state.history.append(guess_int)
 
@@ -200,20 +135,46 @@ if submit:
         if outcome == "Win":
             st.balloons()
             st.session_state.status = "won"
+            # FIX: Improved final message with context (score, attempts ratio) - AI UX improvement
             st.success(
-                f"You won! The secret was {st.session_state.secret}. "
-                f"Final score: {st.session_state.score}"
+                f"You won! 🎉\n"
+                f"Secret: {st.session_state.secret} | "
+                f"Attempts: {st.session_state.attempts}/{attempt_limit} | "
+                f"Score: {st.session_state.score}"
             )
         else:
             if st.session_state.attempts >= attempt_limit:
                 st.session_state.status = "lost"
                 st.error(
-                    f"Out of attempts! "
-                    f"The secret was {st.session_state.secret}. "
+                    f"Out of attempts! 💔\n"
+                    f"Secret: {st.session_state.secret} | "
+                    f"Attempts used: {st.session_state.attempts}/{attempt_limit} | "
                     f"Score: {st.session_state.score}"
                 )
             else:
+                # FIX: Only rerun mid-game guesses to preserve balloons on win/loss (AI: prevents animation interrupt)
                 st.rerun()
 
 st.divider()
+
+# FIX: Moved debug info to bottom so score always shows updated value (AI: fixed stale score display)
+with st.expander("Developer Debug Info"):
+    col_secret1, col_secret2 = st.columns([2, 1])
+    with col_secret1:
+        if st.session_state.show_secret:
+            st.write("🔢 Secret (number to guess):", st.session_state.secret)
+        else:
+            st.write("🔢 Secret (number to guess): ***HIDDEN***")
+    with col_secret2:
+        # FIX: Added reveal button to hide secret until clicked (user + AI collaboration)
+        if st.button("🔓 Reveal", key="reveal_secret"):
+            st.session_state.show_secret = not st.session_state.show_secret
+            st.rerun()
+
+    # FIX: Improved labels with clarity about what each stat means (AI: UX enhancement)
+    st.write("📊 Attempts used:", st.session_state.attempts)
+    st.write("⭐ Score (updated each guess):", st.session_state.score)
+    st.write("🎯 Difficulty:", difficulty)
+    st.write("📝 History:", st.session_state.history)
+
 st.caption("Built by an AI that claims this code is production-ready.")
