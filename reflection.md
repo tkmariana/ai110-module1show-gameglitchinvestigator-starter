@@ -5,19 +5,31 @@ Answer each question in 3 to 5 sentences. Be specific and honest about what actu
 ## 1. What was broken when you started?
 
 - What did the game look like the first time you ran it?
+it looks likes a simple game, it doesnt have a lot of game instructions. In the developer debug info
+is not very clear for me, I don't understand the secret
 - List at least two concrete bugs you noticed at the start  
   (for example: "the hints were backwards").
+  show hint button is not working
+  it saying atempst allowed 8 but says I have 7 left when starts
 
+| Input | Expected Behavior | Actual Behavior | Console Output / Error |
+|-------|-------------------|-----------------|------------------------|
+| hint  | give me a hint    | nothing happened| app.py line 165       |
+|attemps| 8 attemps left    | 7 attemps left  | app.py line 111       |
 **Bug Reproduction Log**
 
 Document at least 3 bugs you found. Add rows as needed.
 
 | Input | Expected Behavior | Actual Behavior | Console Output / Error |
 |-------|-------------------|-----------------|------------------------|
-| | | | |
-| | | | |
-| | | | |
-
+|enter negative number| error message: out of range number | Go LOWER! | app.py line 14 |
+|out range positive   | error message: out of range number | Go LOWER! | app.py line 32 |
+|guess number never correct even when I was 1 and said lower number | winning message             | Go LOWER! | app.py line 32 |
+| new game should reset history| should reset history when click on reset | when reset the history never clears out | app.py |
+| after losing a new game should be able to start game| should be able to start new game | Game over. Start a new game to try again. | app.py line 134|
+| when changing difficulty should be able to reset to new game | change dificulty from medium to hard all developer debug onfo should reset | Developer Debug Info didnt reset | app.py
+| secret and score is hard to understand | I cant understand secret and score | secret 42, score -20 | app.py
+| click submit guess | guess added to history and attempts increase immediately | need to click submit twice before guess is added to history and attempts update | app.py line 151
 ---
 
 ## 2. How did you use AI as a teammate?
