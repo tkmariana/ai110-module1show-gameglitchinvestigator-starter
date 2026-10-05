@@ -35,18 +35,26 @@ Document at least 3 bugs you found. Add rows as needed.
 
 ## 2. How did you use AI as a teammate?
 
-- Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
-- Give one example of an AI suggestion that was correct (including what the AI suggested and how you verified the result).
-- Give one example of an AI suggestion you did not accept as written (including what the AI suggested, why you rejected or changed it, and how you verified your version). It does not have to be a suggestion that was wrong: over-engineered, out of scope, harder to read, or a poor fit for this codebase all count.
+I used Claude Code (Claude) to help me fix all the bugs I found. Claude was really helpful because it could explain WHY something was broken, not just tell me what was wrong.
+
+**One AI suggestion that was correct:**
+Claude noticed that the balloons animation wasn't showing when I won. It told me the problem: I was calling st.rerun() right after st.balloons(), which was interrupting the animation before it could finish. Claude suggested moving st.rerun() so it only happens during the game (when you make a wrong guess), but NOT when you win or lose. I tested this by playing the game and guessing the right number - boom, balloons showed up! That was awesome and Claude was totally right about the root cause. I found this was the issue by manually playing and seeing the animation work after the fix at line 151 in app.py.
+
+**One AI suggestion I changed:**
+Claude wrote all the tests for me but got the scoring formula wrong in the test expectations. It wrote tests expecting `100 - 10*attempts` but the actual code does `100 - 10*(attempts+1)`. I ran `pytest tests/test_game_logic.py -v` and got 5 test failures. Instead of believing Claude's tests, I looked at the actual logic_utils.py code and saw the +1 was there. So I fixed the test math to match the real code - like for attempt 2, it should expect 70 points, not 80. It wasn't that Claude was wrong about how to test, just wrong about the formula itself. After I fixed the numbers, all 33 tests passed and I trusted them.
 
 ---
 
 ## 3. Debugging and testing your fixes
 
-- How did you decide whether a bug was really fixed?
-- Describe at least one test you ran (manual or using pytest)  
-  and what it showed you about your code.
-- Did AI help you design or understand any tests? How?
+**How I decided if a bug was really fixed:**
+I mostly just played the game and saw if the bug still happened. Like with the "need to click submit twice" bug - I'd enter a number, click Submit once, and check if it showed up in the debug info right away. Before the fix, I had to click twice. After Claude added st.rerun(), it worked on the first click. That was my proof it was fixed. I did this over and over for each bug - reproduce it, apply the fix, test it manually in the app.
+
+**Test I ran and what it showed me:**
+I ran `python -m pytest tests/test_game_logic.py -v` and got 33 tests total. First time I ran it, 5 tests failed about the scoring. I saw the error messages like "assert 80 == 90" which told me my test expectations were wrong. This made me realize I needed to check what the actual code was doing, not guess. So I looked at logic_utils.py line 55 and saw `100 - 10 * (attempt_number + 1)` with that +1 right there. So I fixed my test formulas to match what the code actually does. Then all 33 tests passed and I knew my code was working correctly for all the cases Claude wrote tests for.
+
+**How Claude helped with testing:**
+Claude organized the tests really well with different classes for each function (TestCheckGuess, TestParseGuess, etc.). It also wrote tests for edge cases I wouldn't have thought of, like negative numbers and floating point inputs. When the tests failed, Claude helped me understand that the formula was the issue, not the logic itself. That helped me trust the tests after I fixed them.
 
 ---
 
