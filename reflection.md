@@ -30,6 +30,7 @@ Document at least 3 bugs you found. Add rows as needed.
 | when changing difficulty should be able to reset to new game | change dificulty from medium to hard all developer debug onfo should reset | Developer Debug Info didnt reset | app.py
 | secret and score is hard to understand | I cant understand secret and score | secret 42, score -20 | app.py
 | click submit guess | guess added to history and attempts increase immediately | need to click submit twice before guess is added to history and attempts update | app.py line 151
+| secret number should be hidden | secret should show ***HIDDEN*** and have reveal button | secret number visible right away spoils game | app.py
 ---
 
 ## 2. How did you use AI as a teammate?

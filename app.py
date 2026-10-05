@@ -111,6 +111,9 @@ if "status" not in st.session_state:
 if "history" not in st.session_state:
     st.session_state.history = []
 
+if "show_secret" not in st.session_state:
+    st.session_state.show_secret = False
+
 st.subheader("Make a guess")
 
 st.info(
@@ -119,7 +122,17 @@ st.info(
 )
 
 with st.expander("Developer Debug Info"):
-    st.write("🔢 Secret (number to guess):", st.session_state.secret)
+    col_secret1, col_secret2 = st.columns([2, 1])
+    with col_secret1:
+        if st.session_state.show_secret:
+            st.write("🔢 Secret (number to guess):", st.session_state.secret)
+        else:
+            st.write("🔢 Secret (number to guess): ***HIDDEN***")
+    with col_secret2:
+        if st.button("🔓 Reveal", key="reveal_secret"):
+            st.session_state.show_secret = not st.session_state.show_secret
+            st.rerun()
+
     st.write("📊 Attempts used:", st.session_state.attempts)
     st.write("⭐ Score (updated each guess):", st.session_state.score)
     st.write("🎯 Difficulty:", difficulty)
