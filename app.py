@@ -169,6 +169,7 @@ if submit:
     if not ok:
         st.session_state.history.append(raw_guess)
         st.error(err)
+        st.rerun()
     else:
         st.session_state.history.append(guess_int)
 
@@ -198,8 +199,8 @@ if submit:
                     f"The secret was {st.session_state.secret}. "
                     f"Score: {st.session_state.score}"
                 )
-
-    st.rerun()
+            else:
+                st.rerun()
 
 st.divider()
 st.caption("Built by an AI that claims this code is production-ready.")
